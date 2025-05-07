@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
   senha: {
     type: String,
     required: true,
-    select: false // Oculta a senha por padrão
+
   },
   nivel: {
     type: Boolean,

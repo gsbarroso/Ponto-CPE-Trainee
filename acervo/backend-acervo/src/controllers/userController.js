@@ -47,18 +47,13 @@ exports.createUser = async (req, res) => {
  */
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-__v'); // Já exclui senha automaticamente
+    const users = await User.find().select('-__v'); // Inclui o campo senha
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-/**
- * Retorna um usuário por ID (MongoDB)
- * Método: GET
- * Rota: /usuarios/:id
- */
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-__v');
