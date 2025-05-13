@@ -1,32 +1,37 @@
+// src/routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
-const { validarCadastroUsuario } = require('../validators/userValidator');
-const autenticar = require('../middlewares/autenticacao'); // Caminho corrigido
+const {
+  createUser,
+  listUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+  validatePassword,
+  updatePassword
+} = require('../controllers/userController');
+
+const { validarCadastro } = require('../validators/userValidator');
+const autenticar = require('../middlewares/autenticacao');
 const autorizar = require('../middlewares/autorizacao');
 
-// Rotas públicas
-router.post('/registrar', validarCadastroUsuario, userController.criarUsuario);
+// ========== ROTAS PÚBLICAS ==========
+router.post('/', validarCadastro, createUser);
+router.get('/', listUsers); // Rota GET pública
 
-// Rotas autenticadas
+// ========== MIDDLEWARE DE AUTENTICAÇÃO ==========
 router.use(autenticar);
 
-// Rotas com controle de acesso
-router.get('/', 
-  autorizar('Admin'), 
-  userController.listarUsuarios
-);
-
+// ========== ROTAS AUTENTICADAS ==========
 router.route('/:id')
-  .get(autorizar('Admin', 'Gerente'), userController.obterUsuario)
-  .put(autorizar('Admin'), userController.atualizarUsuario)
-  .delete(autorizar('Admin'), userController.removerUsuario);
+  .get(autorizar('Admin', 'Gerente'), getUser)
+  .put(autorizar('Admin'), updateUser)
+  .delete(autorizar('Admin'), deleteUser);
 
-// Rota especial para mudança de senha
-router.patch('/:id/senha',
-  autorizar('Admin'),
-  userController.validarTrocaSenha,
-  userController.atualizarSenha
+router.patch('/:id/senha', 
+  autorizar('Admin'), 
+  validatePassword, 
+  updatePassword
 );
 
 module.exports = router;

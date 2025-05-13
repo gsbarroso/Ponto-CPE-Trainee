@@ -1,34 +1,48 @@
-module.exports = function validateUser(data) {
-  const errors = [];
+const { body } = require('express-validator');
+const User = require('../models/User');
 
-  // Validação do nome
-  if (!data.nome || data.nome.trim() === '') {
-    errors.push("Nome é obrigatório");
-  }
+exports.validarCadastro = [
+  body('nome')
+    .trim()
+    .notEmpty().withMessage('Nome é obrigatório')
+    .isLength({ min: 3 }).withMessage('Nome deve ter pelo menos 3 caracteres'),
+    
+  body('email')
+    .trim()
+    .notEmpty().withMessage('Email é obrigatório')
+    .isEmail().withMessage('Email inválido')
+    .custom(async email => {
+      const user = await User.findOne({ email });
+      if (user) throw new Error('Email já cadastrado');
+      return true;
+    }),
+    
+  body('cargo')
+    .trim()
+    .notEmpty().withMessage('Cargo é obrigatório'),
+    
+  body('senha')
+    .trim()
+    .notEmpty().withMessage('Senha é obrigatória')
+    .isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres'),
+    
+  body('nivel')
+    .isBoolean().withMessage('Nível deve ser booleano')
+];
 
-  // Validação do email
-  if (!data.email || data.email.trim() === '') {
-    errors.push("Email é obrigatório");
-  } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(data.email)) {
-    errors.push("Email inválido");
-  }
-
-  // Validação do cargo
-  if (!data.cargo || data.cargo.trim() === '') {
-    errors.push("Cargo é obrigatório");
-  }
-
-  // Validação da senha
-  if (!data.senha || data.senha.trim() === '') {
-    errors.push("Senha é obrigatória");
-  } else if (data.senha.length < 6) {
-    errors.push("A senha deve ter pelo menos 6 caracteres");
-  }
-
-  // Validação do nível (booleano)
-  if (typeof data.nivel !== "boolean") {
-    errors.push("Nível deve ser booleano");
-  }
-
-  return errors;
-};
+exports.validarAtualizacao = [
+  body('email')
+    .optional()
+    .isEmail().withMessage('Email inválido')
+    .custom(async (email, { req }) => {
+      const user = await User.findOne({ email });
+      if (user && user._id.toString() !== req.params.id) {
+        throw new Error('Email já cadastrado');
+      }
+      return true;
+    }),
+    
+  body('senha')
+    .optional()
+    .isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres')
+];

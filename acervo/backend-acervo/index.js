@@ -7,11 +7,14 @@ const rateLimit = require('express-rate-limit');
 const userRoutes = require('./src/routes/userRoutes');
 const logger = require('./src/utils/logger');
 
-// Configuração inicial
-dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
+// Carregar variáveis de ambiente
+dotenv.config();
+
 const app = express();
 
-// Configuração de segurança
+// ======================================
+// CONFIGURAÇÕES DE SEGURANÇA
+// ======================================
 app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
@@ -19,7 +22,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Limitação de taxa (100 requests por 15 minutos)
+// ======================================
+// PROTEÇÃO CONTRA DDoS E ABUSOS
+// ======================================
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -28,22 +33,31 @@ const apiLimiter = rateLimit({
   message: 'Muitas requisições deste IP, tente novamente mais tarde.'
 });
 
-// Middlewares
+// ======================================
+// MIDDLEWARES
+// ======================================
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Conexão com o MongoDB
+// ======================================
+// CONEXÃO COM BANCO DE DADOS
+// ======================================
 const connectDB = async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI não definida no .env');
+    }
+
     await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      family: 4 // Usar IPv4
+      family: 4
     });
+
     logger.info('✅ Conectado ao MongoDB');
 
     mongoose.connection.on('error', err => {
-      logger.error(`❌ Erro na conexão: ${err.message}`);
+      logger.error(`❌ Erro de conexão: ${err.message}`);
     });
 
     mongoose.connection.on('disconnected', () => {
@@ -56,20 +70,25 @@ const connectDB = async () => {
   }
 };
 
-// Rotas
-app.use('/api/v1/usuarios', apiLimiter, userRoutes);
+// ======================================
+// ROTAS PRINCIPAIS
+// ======================================
+app.use('/api/v1/usuarios', apiLimiter, userRoutes); // Rota corrigida
 
-// Rota de saúde
+// ======================================
+// HEALTH CHECK
+// ======================================
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
     message: 'Servidor operacional',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    timestamp: new Date().toISOString()
   });
 });
 
-// Middleware para 404
+// ======================================
+// HANDLERS DE ERRO
+// ======================================
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
@@ -77,29 +96,31 @@ app.use((req, res) => {
   });
 });
 
-// Middleware de erros
 app.use((err, req, res, next) => {
   logger.error(`🚨 Erro: ${err.stack}`);
   
   res.status(err.statusCode || 500).json({
     status: 'error',
     message: process.env.NODE_ENV === 'production' 
-      ? 'Ocorreu um erro no servidor' 
-      : err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      ? 'Erro interno do servidor' 
+      : err.message
   });
 });
 
-// Inicialização do servidor
+// ======================================
+// INICIALIZAÇÃO DO SERVIDOR
+// ======================================
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, async () => {
   await connectDB();
-  logger.info(`🚀 Servidor rodando na porta ${PORT} (${process.env.NODE_ENV || 'development'})`);
+  logger.info(`🚀 Servidor rodando na porta ${PORT}`);
 });
 
-// Desligamento gracioso
+// ======================================
+// DESLIGAMENTO GRACIOSO
+// ======================================
 const shutdown = (signal) => {
-  logger.info(`🛑 Recebido ${signal}, encerrando servidor...`);
+  logger.info(`🛑 Recebido ${signal}, encerrando...`);
   server.close(async () => {
     await mongoose.disconnect();
     logger.info('👋 Servidor encerrado');
@@ -107,5 +128,5 @@ const shutdown = (signal) => {
   });
 };
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

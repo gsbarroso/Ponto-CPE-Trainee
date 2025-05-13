@@ -1,9 +1,7 @@
-// src/middlewares/autorizar.js
-
+// src/middlewares/autorizacao.js
 const autorizar = (...cargosPermitidos) => {
   return (req, res, next) => {
     try {
-      // 1. Verificar se o usuário está autenticado
       if (!req.userData) {
         return res.status(401).json({
           success: false,
@@ -11,37 +9,34 @@ const autorizar = (...cargosPermitidos) => {
         });
       }
 
-      // 2. Verificar se o usuário possui um cargo válido
       const cargoUsuario = req.userData.cargo;
       
       if (!cargoUsuario) {
         return res.status(403).json({
           success: false,
-          message: 'Cargo do usuário não definido'
+          message: 'Cargo não definido'
         });
       }
 
-      // 3. Verificar se o cargo está na lista de permitidos
       if (!cargosPermitidos.includes(cargoUsuario)) {
         return res.status(403).json({
           success: false,
           message: 'Acesso não autorizado',
-          requiredRoles: cargosPermitidos,
-          currentRole: cargoUsuario
+          cargosRequeridos: cargosPermitidos,
+          cargoAtual: cargoUsuario
         });
       }
 
-      // 4. Se tudo estiver OK, prosseguir
       next();
 
     } catch (error) {
       console.error('Erro na autorização:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
-        message: 'Erro interno no sistema de autorização'
+        message: 'Erro interno no sistema'
       });
     }
   };
 };
 
-module.exports = autorizar;
+module.exports = autorizar; // Exportação corrigida
