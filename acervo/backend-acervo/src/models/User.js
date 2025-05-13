@@ -7,17 +7,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: uuidv4,
     unique: true,
-    index: true // Adicionado índice para otimizar consultas
+    index: true
   },
   nome: {
     type: String,
     required: [true, 'O nome é obrigatório'],
-    trim: true // Remove espaços em branco extras
+    trim: true,
+    minlength: [3, 'Nome deve ter pelo menos 3 caracteres']
   },
   cargo: {
     type: String,
     required: [true, 'O cargo é obrigatório'],
-    enum: ['Desenvolvedor', 'Gerente', 'Admin'], // Exemplo de valores permitidos
+    enum: ['Desenvolvedor', 'Gerente', 'Admin'],
     default: 'Desenvolvedor'
   },
   email: {
@@ -25,48 +26,52 @@ const userSchema = new mongoose.Schema({
     unique: true,
     required: [true, 'O email é obrigatório'],
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido'],
-    lowercase: true, // Armazena em lowercase
+    lowercase: true,
     trim: true
   },
   senha: {
     type: String,
-    required: true,
-
+    required: [true, 'A senha é obrigatória'],
+    minlength: [8, 'Senha deve ter no mínimo 8 caracteres'],
+    select: false // Não retorna a senha em consultas
   },
-  nivel: {
-    type: Boolean,
-    required: [true, 'O nível de acesso é obrigatório'],
-    default: true
+  nivel_acesso: {
+    type: String,
+    enum: ['basico', 'intermediario', 'avancado'],
+    default: 'basico'
   }
 }, {
   timestamps: true,
   toJSON: {
     virtuals: true,
     transform: (doc, ret) => {
-      delete ret.id_usuario; // Remove campo
-      delete ret.id;         // Remove campo
-      delete ret.__v;        // Remove versão do documento
+      delete ret.senha;
+      delete ret.__v;
       return ret;
     }
   }
 });
 
-// Middleware para criptografia da senha
+// Middleware de pré-save aprimorado
 userSchema.pre('save', async function(next) {
   if (!this.isModified('senha')) return next();
   
   try {
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     this.senha = await bcrypt.hash(this.senha, salt);
-    return next();
+    next();
   } catch (error) {
-    return next(error);
+    next(new Error('Falha ao criptografar senha'));
   }
 });
 
-// Método para comparar senhas
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.senha);
+// Método de comparação de senhas com tratamento de erros
+userSchema.methods.compareSenha = async function(senhaCandidata) {
+  try {
+    return await bcrypt.compare(senhaCandidata, this.senha);
+  } catch (error) {
+    throw new Error('Falha na comparação de senhas');
+  }
 };
 
 const User = mongoose.model('User', userSchema);
