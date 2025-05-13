@@ -1,22 +1,22 @@
-.header-logo {
-  height: 40px; /* Ajuste conforme necessidade */
-  width: auto;
-  transition: opacity 0.3s;
+.header {
+  background: #ffea00;
+  height: 80px;
+  display: flex;
+  align-items: center;
 }
 
-.header {
-    background:  #ffea00;
-    padding: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-  }
-  
-  .header h1 {
-    color: rgb(0, 0, 0);
-    font-size: 1.5rem;
-  }
+.header-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 0rem; /* Aumentei o padding lateral */
+  display: flex;
+  justify-content: flex-start; /* Alinhamento à esquerda */
+}
+
+.header-container img.header-logo {
+  height: 200px;
+  width: auto;
+  object-fit: contain;
+  margin-left: 1px; /* Distância da borda esquerda */
+}

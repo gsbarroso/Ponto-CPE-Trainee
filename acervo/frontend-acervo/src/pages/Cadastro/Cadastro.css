@@ -2,68 +2,96 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 76px); /* Altura total menos header */
+  min-height: calc(100vh - 76px);
   padding: 2rem;
+  background: #000;
 }
 
 .cadastro-card {
-  background: rgb(0, 0, 0);
+  background: #000;
   width: 100%;
   max-width: 500px;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1); /* Sombra branca sutil */
 }
 
 .cadastro-card h1 {
   text-align: center;
   margin-bottom: 2rem;
   color: #ffea00;
+  font-size: 2rem;
 }
 
 .input-group {
   margin-bottom: 1.5rem;
+  position: relative;
 }
 
 .input-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #ffffff;
+  color: #ffea00;
 }
 
 .input-group input {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #000000;
+  padding: 0.8rem 40px 0.8rem 1rem;
+  border: 1px solid #333;
   border-radius: 4px;
   font-size: 1rem;
+  background: #111;
+  color: #fff;
+}
+
+/* Estilos para o olho da senha */
+.password-input {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ffea00;
+  padding: 5px;
+  font-size: 1.2rem;
 }
 
 .btn-cadastrar {
   width: 100%;
   padding: 1rem;
-  background:  #ffea00;
-  color: rgb(0, 0, 0);
+  background: #ffea00;
+  color: #000;
   border: none;
-  border-radius: 4px;
+  border-radius: 50px; /* Botão totalmente redondo */
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s;
+  font-weight: bold;
+  margin-top: 1rem;
 }
 
 .btn-cadastrar:hover {
-  background:  #ffea00;
+  background: #000000;
+  color: #000;
+  transform: scale(1.05);
 }
 
 .login-link {
   text-align: center;
   margin-top: 1.5rem;
-  color: #666;
+  color: #ffffff;
 }
 
 .login-link a {
   color: #ffea00;
-  text-decoration: none;
+  text-decoration: underline;
+  font-weight: bold;
 }
 
 /* Responsividade */
@@ -75,12 +103,21 @@
   .cadastro-card {
     padding: 1.5rem;
   }
+
+  .cadastro-card h1 {
+    font-size: 1.5rem;
+  }
 }
 
 @media (max-width: 280px) {
   .input-group input {
-    padding: 0.6rem;
+    padding: 0.6rem 35px 0.6rem 0.8rem;
     font-size: 0.9rem;
+  }
+
+  .toggle-password {
+    right: 10px;
+    font-size: 1rem;
   }
 
   .btn-cadastrar {

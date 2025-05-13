@@ -1,6 +1,12 @@
+import { useState } from 'react'
+import { FaEye, FaEyeSlash } from 'react-icons/fa6'
+import { Link } from 'react-router-dom'
 import './Cadastro.css'
 
 export default function Cadastro() {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   return (
     <div className="cadastro-container">
       <div className="cadastro-card">
@@ -26,15 +32,39 @@ export default function Cadastro() {
           </div>
 
           {/* Senha */}
-          <div className="input-group">
+          <div className="input-group password-group">
             <label>Senha</label>
-            <input type="password" placeholder="••••••••" />
+            <div className="password-input">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           {/* Confirmar Senha */}
-          <div className="input-group">
+          <div className="input-group password-group">
             <label>Confirme sua Senha</label>
-            <input type="password" placeholder="••••••••" />
+            <div className="password-input">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn-cadastrar">
@@ -43,7 +73,7 @@ export default function Cadastro() {
         </form>
 
         <p className="login-link">
-          Já tem uma conta? <a href="/login">Faça login aqui</a>
+          Já tem uma conta? <Link to="/login">Faça login aqui</Link>
         </p>
       </div>
     </div>

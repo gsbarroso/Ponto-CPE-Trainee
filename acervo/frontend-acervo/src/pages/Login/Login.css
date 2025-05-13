@@ -1,0 +1,56 @@
+/* Reaproveite os estilos do Cadastro com ajustes */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 76px);
+  padding: 2rem;
+  background: #000;
+}
+
+.login-card {
+  background: #000;
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-card h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #ffea00;
+  font-size: 2rem;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 1rem;
+  background: #ffea00;
+  color: #000;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.btn-login:hover {
+  background: #fff;
+  transform: scale(1.05);
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #ffffff;
+}
+
+.register-link a {
+  color: #ffea00;
+  text-decoration: underline;
+  font-weight: bold;
+}
