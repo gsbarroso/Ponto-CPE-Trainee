@@ -1,17 +1,19 @@
 const mongoose = require('mongoose');
-const path = require('path');
 const dotenv = require('dotenv');
+const path = require('path');
 
-// Carregar variáveis de ambiente
-dotenv.config();
+// Carregar variáveis de ambiente do .env
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // Conexão com MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-});
+})
+  .then(() => console.log('✅ Conectado ao MongoDB com sucesso!'))
+  .catch((err) => {
+    console.error('❌ Erro ao conectar ao MongoDB:', err.message);
+    process.exit(1);
+  });
 
-// Exportar a conexão
 module.exports = mongoose;

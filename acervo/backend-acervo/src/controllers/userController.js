@@ -1,202 +1,132 @@
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
 
-// Criação de usuário
-exports.createUser = async (req, res) => {
+// Criar usuário (POST)
+const createUser = async (req, res) => {
   try {
-    const { nome, cargo, email, senha, nivel_acesso } = req.body;
+    const { nome, email, senha, nivel_acesso } = req.body;
 
-    // Validação de campos obrigatórios
-    if (!nome || !cargo || !email || !senha) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Nome, cargo, email e senha são obrigatórios'
-      });
-    }
-
-    const novoUsuario = await User.create({
+    const user = new User({
       nome,
-      cargo,
       email,
-      senha,
-      nivel_acesso
+      senha, // será hasheada no pre-save
+      nivel_acesso: Boolean(nivel_acesso),
     });
 
+    await user.save();
+
+    // Retorna a senha em texto puro (a que veio no req.body)
     res.status(201).json({
-      status: 'success',
-      data: {
-        _id: novoUsuario._id,
-        nome: novoUsuario.nome,
-        cargo: novoUsuario.cargo,
-        email: novoUsuario.email,
-        nivel_acesso: novoUsuario.nivel_acesso,
-        createdAt: novoUsuario.createdAt
-      }
+      id: user._id,
+      nome: user.nome,
+      email: user.email,
+      senha: senha, // texto puro
+      nivel_acesso: user.nivel_acesso,
+      createdAt: user.createdAt,
     });
-
-  } catch (error) {
-    let message = 'Erro ao criar usuário';
-    if (error.name === 'ValidationError') {
-      message = Object.values(error.errors).map(val => val.message).join(', ');
-    } else if (error.code === 11000) {
-      message = 'Email já está em uso';
-    }
-    res.status(400).json({ status: 'error', message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Atualização de usuário
-exports.updateUser = async (req, res) => {
+// Buscar todos os usuários (GET)
+const getAllUsers = async (req, res) => {
   try {
-    const updates = { ...req.body };
-    
-    if (updates.senha) {
-      updates.senha = await bcrypt.hash(updates.senha, 10);
-    }
+    // Seleciona a senha hashada (sem "-senha")
+    const users = await User.find().select("+senha");
 
-    const usuarioAtualizado = await User.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true, select: '-senha -__v' }
-    ).lean();
+    const response = users.map(user => ({
+      id: user._id,
+      nome: user.nome,
+      email: user.email,
+      senha: user.senha, // senha hashada
+      nivel_acesso: user.nivel_acesso,
+      createdAt: user.createdAt,
+    }));
 
-    if (!usuarioAtualizado) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Usuário não encontrado'
-      });
-    }
-
-    res.status(200).json({
-      status: 'success',
-      data: usuarioAtualizado
-    });
-
-  } catch (error) {
-    let message = 'Erro ao atualizar usuário';
-    if (error.name === 'ValidationError') {
-      message = Object.values(error.errors).map(val => val.message).join(', ');
-    }
-    res.status(400).json({ status: 'error', message });
+    res.json(response);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Listagem de usuários
-exports.listUsers = async (req, res) => {
+// Buscar usuário por ID (GET /:id)
+const getUserById = async (req, res) => {
   try {
-    const usuarios = await User.find()
-      .select('-senha -__v')
-      .lean();
+    const { id } = req.params;
 
-    res.status(200).json({
-      status: 'success',
-      results: usuarios.length,
-      data: usuarios
+    // Seleciona a senha hashada
+    const user = await User.findById(id).select("+senha");
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    res.json({
+      id: user._id,
+      nome: user.nome,
+      email: user.email,
+      senha: user.senha, // senha hashada
+      nivel_acesso: user.nivel_acesso,
+      createdAt: user.createdAt,
     });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Erro ao buscar usuários'
-    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Busca de usuário específico
-exports.getUser = async (req, res) => {
+// Atualizar usuário (PUT /:id)
+const updateUser = async (req, res) => {
   try {
-    const usuario = await User.findById(req.params.id)
-      .select('-senha -__v')
-      .lean();
+    const { id } = req.params;
+    const { nome, email, senha, nivel_acesso } = req.body;
 
-    if (!usuario) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Usuário não encontrado'
-      });
+    // Buscar usuário com senha para possível re-hash
+    const user = await User.findById(id).select("+senha");
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    // Atualiza campos
+    user.nome = nome ?? user.nome;
+    user.email = email ?? user.email;
+    if (senha) {
+      user.senha = senha; // será hash no pre-save
+    }
+    if (nivel_acesso !== undefined) {
+      user.nivel_acesso = Boolean(nivel_acesso);
     }
 
-    res.status(200).json({
-      status: 'success',
-      data: usuario
+    await user.save();
+
+    // Retorna a senha em texto puro (a que veio no req.body)
+    res.json({
+      id: user._id,
+      nome: user.nome,
+      email: user.email,
+      senha: senha || undefined, // texto puro se senha foi enviada na atualização
+      nivel_acesso: user.nivel_acesso,
+      createdAt: user.createdAt,
     });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Erro ao buscar usuário'
-    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Validação de senha
-exports.validatePassword = async (req, res, next) => {
+// Deletar usuário (DELETE /:id)
+const deleteUser = async (req, res) => {
   try {
-    const { senhaAtual } = req.body;
-    const usuario = await User.findById(req.params.id).select('+senha');
-    
-    if (!usuario) return res.status(404).json({
-      status: 'error',
-      message: 'Usuário não encontrado'
-    });
-    
-    const senhaValida = await usuario.compareSenha(senhaAtual);
-    if (!senhaValida) return res.status(401).json({
-      status: 'error',
-      message: 'Senha atual incorreta'
-    });
-    
-    next();
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Erro na validação da senha'
-    });
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    await user.deleteOne();
+
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Atualização de senha
-exports.updatePassword = async (req, res) => {
-  try {
-    const { novaSenha } = req.body;
-    const senhaHash = await bcrypt.hash(novaSenha, 10);
-    
-    await User.findByIdAndUpdate(
-      req.params.id,
-      { senha: senhaHash }
-    );
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Senha atualizada com sucesso'
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 'error',
-      message: 'Erro ao atualizar senha'
-    });
-  }
-};
-
-// Adicione este método ao controller
-exports.deleteUser = async (req, res) => {
-  try {
-    const usuario = await User.findByIdAndDelete(req.params.id)
-      .select('-senha -__v');
-
-    if (!usuario) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Usuário não encontrado'
-      });
-    }
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Usuário removido com sucesso'
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Erro ao remover usuário'
-    });
-  }
+module.exports = {
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
 };

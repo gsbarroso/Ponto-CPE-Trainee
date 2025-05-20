@@ -1,9 +1,8 @@
-// src/middlewares/autenticacao.js
 const jwt = require('jsonwebtoken');
 
 const autenticar = (req, res, next) => {
   try {
-    // 1. Verificar existência do header Authorization
+    // 1. Verifica se existe o header Authorization
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({
@@ -13,7 +12,7 @@ const autenticar = (req, res, next) => {
       });
     }
 
-    // 2. Validar formato do token (Bearer + token)
+    // 2. Valida o formato: deve ser "Bearer <token>"
     const [bearer, token] = authHeader.split(' ');
     if (bearer !== 'Bearer' || !token) {
       return res.status(401).json({
@@ -23,10 +22,10 @@ const autenticar = (req, res, next) => {
       });
     }
 
-    // 3. Verificar token com tratamento de erros específicos
+    // 3. Verifica o token (jwt.verify lança erro se inválido ou expirado)
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // 4. Validar estrutura do payload
+
+    // 4. Valida payload esperado
     if (!decoded.id || !decoded.cargo) {
       return res.status(401).json({
         success: false,
@@ -35,39 +34,38 @@ const autenticar = (req, res, next) => {
       });
     }
 
-    // 5. Adicionar dados ao request
+    // 5. Adiciona dados do usuário ao req para as próximas etapas
     req.usuario = {
       id: decoded.id,
       cargo: decoded.cargo,
-      token // Útil para logout/revogação
+      token, // pode ser útil para logout/revogação se quiser implementar
     };
 
     next();
-    
+
   } catch (error) {
-    // 6. Tratamento detalhado de erros
+    // 6. Tratamento dos erros específicos
     let statusCode = 401;
     let errorCode = 'AUTH_FAILED';
     let errorMessage = 'Falha na autenticação';
 
-    if (error instanceof jwt.TokenExpiredError) {
+    if (error.name === 'TokenExpiredError') {
       statusCode = 403;
       errorCode = 'TOKEN_EXPIRED';
       errorMessage = 'Token expirado';
-    }
-
-    if (error instanceof jwt.JsonWebTokenError) {
+    } else if (error.name === 'JsonWebTokenError') {
       errorCode = 'INVALID_TOKEN';
       errorMessage = 'Token inválido ou malformado';
     }
 
     console.error(`Erro de autenticação [${errorCode}]:`, error.message);
-    
+
     return res.status(statusCode).json({
       success: false,
       code: errorCode,
       message: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      // Se estiver em dev, mostrar detalhes do erro ajuda debug
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };

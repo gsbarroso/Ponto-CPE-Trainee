@@ -20,14 +20,14 @@
 .login-card h1 {
   text-align: center;
   margin-bottom: 2rem;
-  color: #ffea00;
+  color: #fce515;
   font-size: 2rem;
 }
 
 .btn-login {
   width: 100%;
   padding: 1rem;
-  background: #ffea00;
+  background: #fce515;
   color: #000;
   border: none;
   border-radius: 50px;
@@ -50,7 +50,7 @@
 }
 
 .register-link a {
-  color: #ffea00;
+  color: #fce515;
   text-decoration: underline;
   font-weight: bold;
 }
