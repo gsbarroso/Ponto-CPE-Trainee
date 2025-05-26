@@ -1,8 +1,8 @@
-const bcrypt = require("bcrypt");
-const User = require("../models/User");
+import bcrypt from "bcrypt";
+import User from "../models/User.js";
 
 // Criar usuário (POST)
-const createUser = async (req, res) => {
+export const createUser = async (req, res) => {
   try {
     const { nome, email, senha, nivel_acesso } = req.body;
 
@@ -15,12 +15,11 @@ const createUser = async (req, res) => {
 
     await user.save();
 
-    // Retorna a senha em texto puro (a que veio no req.body)
     res.status(201).json({
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: senha, // texto puro
+      senha: senha, // senha em texto puro (padrão que você criou, cuidado com isso)
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });
@@ -30,16 +29,15 @@ const createUser = async (req, res) => {
 };
 
 // Buscar todos os usuários (GET)
-const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
-    // Seleciona a senha hashada (sem "-senha")
     const users = await User.find().select("+senha");
 
     const response = users.map(user => ({
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: user.senha, // senha hashada
+      senha: user.senha,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     }));
@@ -50,12 +48,11 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// Buscar usuário por ID (GET /:id)
-const getUserById = async (req, res) => {
+// Buscar usuário por ID
+export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Seleciona a senha hashada
     const user = await User.findById(id).select("+senha");
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
@@ -63,7 +60,7 @@ const getUserById = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: user.senha, // senha hashada
+      senha: user.senha,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });
@@ -72,21 +69,19 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Atualizar usuário (PUT /:id)
-const updateUser = async (req, res) => {
+// Atualizar usuário
+export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, email, senha, nivel_acesso } = req.body;
 
-    // Buscar usuário com senha para possível re-hash
     const user = await User.findById(id).select("+senha");
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
-    // Atualiza campos
     user.nome = nome ?? user.nome;
     user.email = email ?? user.email;
     if (senha) {
-      user.senha = senha; // será hash no pre-save
+      user.senha = senha;
     }
     if (nivel_acesso !== undefined) {
       user.nivel_acesso = Boolean(nivel_acesso);
@@ -94,12 +89,11 @@ const updateUser = async (req, res) => {
 
     await user.save();
 
-    // Retorna a senha em texto puro (a que veio no req.body)
     res.json({
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: senha || undefined, // texto puro se senha foi enviada na atualização
+      senha: senha || undefined,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });
@@ -108,8 +102,8 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Deletar usuário (DELETE /:id)
-const deleteUser = async (req, res) => {
+// Deletar usuário
+export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
@@ -121,12 +115,4 @@ const deleteUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
-
-module.exports = {
-  createUser,
-  getAllUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
 };

@@ -1,42 +1,33 @@
-const express = require('express');
-const router = express.Router();
+import express from 'express';
 
-const {
+import {
   createUser,
-  getAllUsers,   // corrigido aqui
-  getUserById,   // corrigido aqui
+  getAllUsers,
+  getUserById,
   updateUser,
-  deleteUser,
-  // validatePassword,  // Remova se não existir
-  // updatePassword     // Remova se não existir
-} = require('../controllers/userController');
+  deleteUser
+} from '../controllers/userController.js';
 
-const {
+import {
   validarCadastro,
   validarAtualizacao
-} = require('../validators/userValidator');
+} from '../validators/userValidator.js';
 
-const autenticar = require('../middlewares/autenticacao');
-const autorizar = require('../middlewares/autorizacao');
-const validarRequisicao = require('../middlewares/validarRequisicao');
+import { authenticate, authorize } from '../middlewares/authMiddlewares.js';
+import { validarRequisicao } from '../middlewares/validarRequisicao.js';
 
-// ========== ROTAS PÚBLICAS ==========
+const router = express.Router();
+
+// Rotas públicas
 router.post('/', validarCadastro, validarRequisicao, createUser);
-router.get('/', getAllUsers); // corrigido aqui
+router.get('/', getAllUsers);
 
-// ========== MIDDLEWARE DE AUTENTICAÇÃO ==========
-router.use(autenticar);
+// Middleware de autenticação para rotas abaixo
+router.use(authenticate);
 
-// ========== ROTAS AUTENTICADAS ==========
-router.get('/:id', autorizar('Admin', 'Gerente'), getUserById); // corrigido aqui
-router.put('/:id', autorizar('Admin'), validarAtualizacao, validarRequisicao, updateUser);
-router.delete('/:id', autorizar('Admin'), deleteUser);
+// Rotas protegidas
+router.get('/:id', authorize('Admin', 'Gerente'), getUserById);
+router.put('/:id', authorize('Admin'), validarAtualizacao, validarRequisicao, updateUser);
+router.delete('/:id', authorize('Admin'), deleteUser);
 
-// Se não implementou ainda, remova as rotas abaixo para evitar erro
-// router.patch('/:id/senha',
-//   autorizar('Admin'),
-//   validatePassword,
-//   updatePassword
-// );
-
-module.exports = router;
+export default router;

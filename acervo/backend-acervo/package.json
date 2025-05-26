@@ -1,6 +1,7 @@
 {
   "name": "backend-cpe",
   "version": "1.0.0",
+  "type": "module",
   "description": "Projeto de backend para controle de usuários e sessões - Ponto Trainee",
   "main": "index.js",
   "scripts": {
@@ -24,7 +25,9 @@
     "mongoose": "^8.14.1",
     "mysql2": "^3.14.1",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.25.28",
+    "zod-express-middleware": "^1.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

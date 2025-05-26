@@ -1,8 +1,7 @@
-// src/validators/userValidator.js
-const { body } = require('express-validator');
-const User = require('../models/User');
+import { body } from 'express-validator';
+import User from '../models/User.js'; // Note o .js e uso de import
 
-exports.validarCadastro = [
+export const validarCadastro = [
   body('nome')
     .trim()
     .notEmpty().withMessage('Nome é obrigatório')
@@ -31,7 +30,7 @@ exports.validarCadastro = [
     .isBoolean().withMessage('Nível deve ser booleano')
 ];
 
-exports.validarAtualizacao = [
+export const validarAtualizacao = [
   body('email')
     .optional()
     .isEmail().withMessage('Email inválido')
@@ -45,5 +44,5 @@ exports.validarAtualizacao = [
 
   body('senha')
     .optional()
-    .isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 8 caracteres')
+    .isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres') // Corrigi a msg para 6 caracteres
 ];

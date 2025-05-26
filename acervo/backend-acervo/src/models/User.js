@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const userSchema = new mongoose.Schema({
   id_usuario: {
@@ -57,4 +57,6 @@ userSchema.methods.compareSenha = async function (senhaDigitada) {
   return await bcrypt.compare(senhaDigitada, this.senha);
 };
 
-module.exports = mongoose.model('User', userSchema);
+// Exportando corretamente com ES6
+const User = mongoose.model('User', userSchema);
+export default User;
