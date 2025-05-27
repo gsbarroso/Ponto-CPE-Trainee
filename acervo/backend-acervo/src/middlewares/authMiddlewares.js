@@ -1,76 +1,71 @@
 import jwt from 'jsonwebtoken';
-import  logger  from '../utils/logger.js'; // Ajuste o caminho conforme sua estrutura de pastas
+import logger from '../utils/logger.js'; // Ajuste o caminho conforme sua estrutura
+import { JWT_SECRET } from '../config/authConfig.js';
 
 /**
- * Middleware para autenticação de usuários via JWT
+ * Middleware de autenticação via JWT
  */
 export const authenticate = (req, res, next) => {
-  let token = null;
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({
+      success: false,
+      code: 'TOKEN_REQUIRED',
+      message: 'Token de autenticação não fornecido.',
+    });
+  }
+
+  const [scheme, token] = authHeader.split(' ');
+
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({
+      success: false,
+      code: 'INVALID_TOKEN_FORMAT',
+      message: 'Formato do token inválido. Use: Bearer <token>.',
+    });
+  }
+
+  if (!JWT_SECRET) {
+    logger.error('Erro crítico: JWT_SECRET não definido.');
+    return res.status(500).json({
+      success: false,
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Configuração de segurança ausente no servidor.',
+    });
+  }
 
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({
-        success: false,
-        code: 'TOKEN_REQUIRED',
-        message: 'Token de autenticação não fornecido.'
-      });
-    }
+    const decoded = jwt.verify(token, JWT_SECRET);
 
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      return res.status(401).json({
-        success: false,
-        code: 'INVALID_TOKEN_FORMAT',
-        message: 'Formato do token inválido. Use: Bearer <token>.'
-      });
-    }
-
-    token = parts[1];
-
-    const secret = process.env.JWT_SECRET;
-
-    if (!secret) {
-      logger.error("Erro crítico: JWT_SECRET não definido.");
-      return res.status(500).json({
-        success: false,
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Configuração de segurança ausente no servidor.'
-      });
-    }
-
-    const decoded = jwt.verify(token, secret);
-
-    if (!decoded || typeof decoded !== 'object' || !decoded.id || !decoded.cargo) {
+    if (!decoded || !decoded.id || !decoded.cargo) {
       logger.warn(`Payload do token inválido: ${JSON.stringify(decoded)}`);
       return res.status(401).json({
         success: false,
         code: 'INVALID_TOKEN_PAYLOAD',
-        message: 'Payload do token inválido ou incompleto.'
+        message: 'Payload do token inválido ou incompleto.',
       });
     }
 
     req.user = {
       id: decoded.id,
       cargo: decoded.cargo,
+      email: decoded.email, // opcional, se estiver no payload
     };
 
     next();
-
   } catch (error) {
     let statusCode = 401;
     let errorCode = 'AUTH_FAILED';
     let errorMessage = 'Falha na autenticação.';
 
     if (error instanceof jwt.TokenExpiredError) {
-      statusCode = 401;
       errorCode = 'TOKEN_EXPIRED';
       errorMessage = 'Token expirado.';
     } else if (error instanceof jwt.JsonWebTokenError) {
-      statusCode = 401;
       errorCode = 'INVALID_TOKEN';
       errorMessage = 'Token inválido ou malformado.';
-      logger.warn(`JsonWebTokenError: ${error.message} (Token recebido: ${token ? token.substring(0, 10) + '...' : 'N/A'})`);
+      logger.warn(`JsonWebTokenError: ${error.message} (Token: ${token ? token.slice(0, 10) + '...' : 'N/A'})`);
     } else {
       statusCode = 500;
       errorCode = 'INTERNAL_AUTH_ERROR';
@@ -78,7 +73,7 @@ export const authenticate = (req, res, next) => {
       logger.error(`Erro inesperado na autenticação [${errorCode}]:`, error);
     }
 
-    logger.error(`Falha na autenticação [${errorCode}]: ${errorMessage} (Erro original: ${error.message})`);
+    logger.error(`Falha na autenticação [${errorCode}]: ${errorMessage} (Erro: ${error.message})`);
 
     return res.status(statusCode).json({
       success: false,
@@ -90,7 +85,7 @@ export const authenticate = (req, res, next) => {
 };
 
 /**
- * Middleware para autorização baseado no cargo do usuário.
+ * Middleware de autorização baseado no cargo do usuário
  * @param {Array<string>} allowedRoles - Lista de cargos permitidos
  */
 export const authorize = (allowedRoles = []) => {

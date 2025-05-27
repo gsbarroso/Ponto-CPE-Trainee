@@ -18,16 +18,36 @@ import { validarRequisicao } from '../middlewares/validarRequisicao.js';
 
 const router = express.Router();
 
-// Rotas públicas
-router.post('/', validarCadastro, validarRequisicao, createUser);
-router.get('/', getAllUsers);
+// ROTAS PÚBLICAS
+router.post(
+  '/',
+  validarCadastro,
+  validarRequisicao,
+  createUser
+);
 
-// Middleware de autenticação para rotas abaixo
-router.use(authenticate);
+// Caso queira que listar todos os usuários seja pública (geralmente não é recomendado)
+router.get(
+  '/',
+  getAllUsers
+);
 
-// Rotas protegidas
-router.get('/:id', authorize('Admin', 'Gerente'), getUserById);
-router.put('/:id', authorize('Admin'), validarAtualizacao, validarRequisicao, updateUser);
-router.delete('/:id', authorize('Admin'), deleteUser);
+// ROTAS PROTEGIDAS (precisam de token válido)
+router.get(
+  '/:id',
+  getUserById
+);
+
+router.put(
+  '/:id',
+  validarAtualizacao,
+  validarRequisicao,
+  updateUser
+);
+
+router.delete(
+  '/:id',
+  deleteUser
+);
 
 export default router;
