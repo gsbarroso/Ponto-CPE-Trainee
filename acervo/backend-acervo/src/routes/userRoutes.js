@@ -13,7 +13,7 @@ import {
   validarAtualizacao
 } from '../validators/userValidator.js';
 
-import { authenticate, authorize } from '../middlewares/authMiddlewares.js';
+
 import { validarRequisicao } from '../middlewares/validarRequisicao.js';
 
 const router = express.Router();

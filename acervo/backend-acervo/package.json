@@ -22,11 +22,11 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.14.1",
+    "mongoose": "^8.15.1",
     "mysql2": "^3.14.1",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
-    "zod": "^3.25.28",
+    "zod": "^3.25.32",
     "zod-express-middleware": "^1.4.0"
   },
   "devDependencies": {

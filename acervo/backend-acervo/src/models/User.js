@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A senha é obrigatória'],
     minlength: [6, 'A senha deve ter pelo menos 6 caracteres'],
-    select: false // não retorna senha por padrão nas consultas
+    select: false // Não retorna a senha por padrão
   },
   nivel_acesso: {
     type: Boolean,
@@ -45,16 +45,37 @@ const userSchema = new mongoose.Schema({
   }
 });
 
+
 // Hash da senha antes de salvar
 userSchema.pre('save', async function (next) {
   if (!this.isModified('senha')) return next();
-  this.senha = await bcrypt.hash(this.senha, 10);
-  next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.senha = await bcrypt.hash(this.senha, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
-// Método para comparar senhas
+// Método de instância para comparar senhas
 userSchema.methods.compareSenha = async function (senhaDigitada) {
   return await bcrypt.compare(senhaDigitada, this.senha);
+};
+
+// Método de login direto no schema (estático)
+userSchema.statics.login = async function (email, senha) {
+  const user = await this.findOne({ email }).select('+senha');
+  if (!user) {
+    throw new Error('Email ou senha inválidos');
+  }
+
+  const senhaCorreta = await user.compareSenha(senha);
+  if (!senhaCorreta) {
+    throw new Error('Email ou senha inválidos');
+  }
+
+  return user;
 };
 
 // Exportando corretamente com ES6

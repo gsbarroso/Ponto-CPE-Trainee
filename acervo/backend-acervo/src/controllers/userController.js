@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import User from "../models/User.js";
 
 // Criar usuário (POST)
@@ -103,6 +102,7 @@ export const updateUser = async (req, res) => {
 };
 
 // Deletar usuário
+// Deletar usuário
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -111,8 +111,9 @@ export const deleteUser = async (req, res) => {
 
     await user.deleteOne();
 
-    res.status(204).send();
+    res.status(200).json({ message: `Usuário id: ${id} deletado com sucesso` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+

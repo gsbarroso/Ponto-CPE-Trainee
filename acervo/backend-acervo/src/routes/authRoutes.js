@@ -1,35 +1,12 @@
-// src/routes/authRoutes.js
-import { Router } from 'express';
+import express from 'express';
+import { login } from '../controllers/authController.js';
+import { zValidator } from '@anatine/zod-express-middleware';
+import { loginSchema } from '../validators/authValidator.js';
 
-import { 
-  register, 
-  login 
-} from '../controllers/authController.js';
-
-import { 
-  registerValidator, 
-  loginValidator 
-} from '../validators/authValidator.js';
-
-import { 
-  validarRequisicao 
-} from '../middlewares/validarRequisicao.js';
-
-const router = Router();
-
-// Rota para registro de usuário
-router.post(
-  '/registrar',
-  registerValidator,
-  validarRequisicao,
-  register
-);
-
-// Rota para login
+const router = express.Router();
 router.post(
   '/login',
-  loginValidator,
-  validarRequisicao,
+  zValidator('body', loginSchema), // Validação do corpo da requisição
   login
 );
 
