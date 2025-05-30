@@ -8,7 +8,7 @@ export const createUser = async (req, res) => {
     const user = new User({
       nome,
       email,
-      senha, // será hasheada no pre-save
+      senha,
       nivel_acesso: Boolean(nivel_acesso),
     });
 
@@ -18,7 +18,6 @@ export const createUser = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: senha, // senha em texto puro (padrão que você criou, cuidado com isso)
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });
@@ -36,7 +35,6 @@ export const getAllUsers = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: user.senha,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     }));
@@ -59,7 +57,6 @@ export const getUserById = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: user.senha,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });
@@ -79,9 +76,7 @@ export const updateUser = async (req, res) => {
 
     user.nome = nome ?? user.nome;
     user.email = email ?? user.email;
-    if (senha) {
-      user.senha = senha;
-    }
+
     if (nivel_acesso !== undefined) {
       user.nivel_acesso = Boolean(nivel_acesso);
     }
@@ -92,7 +87,6 @@ export const updateUser = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
-      senha: senha || undefined,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });

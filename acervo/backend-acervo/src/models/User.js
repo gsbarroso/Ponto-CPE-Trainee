@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A senha é obrigatória'],
     minlength: [6, 'A senha deve ter pelo menos 6 caracteres'],
-    select: false // Não retorna a senha por padrão
+    select: false // Segurança: não retorna senha nas queries por padrão
   },
   nivel_acesso: {
     type: Boolean,
@@ -45,8 +45,7 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-
-// Hash da senha antes de salvar
+// Hash da senha antes de salvar (apenas se for nova ou modificada)
 userSchema.pre('save', async function (next) {
   if (!this.isModified('senha')) return next();
   try {
@@ -54,7 +53,7 @@ userSchema.pre('save', async function (next) {
     this.senha = await bcrypt.hash(this.senha, salt);
     next();
   } catch (err) {
-    next(err);
+    return next(err);
   }
 });
 
@@ -63,7 +62,7 @@ userSchema.methods.compareSenha = async function (senhaDigitada) {
   return await bcrypt.compare(senhaDigitada, this.senha);
 };
 
-// Método de login direto no schema (estático)
+// Método estático de login
 userSchema.statics.login = async function (email, senha) {
   const user = await this.findOne({ email }).select('+senha');
   if (!user) {
@@ -78,6 +77,5 @@ userSchema.statics.login = async function (email, senha) {
   return user;
 };
 
-// Exportando corretamente com ES6
 const User = mongoose.model('User', userSchema);
 export default User;
