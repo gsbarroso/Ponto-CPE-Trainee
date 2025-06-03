@@ -126,7 +126,8 @@ app.post('/api/v1/auth/login', async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    // Buscar o usuário, incluindo o campo senha (que por padrão não vem por causa de select: false)
+    const user = await User.findOne({ email }).select('+senha');
 
     if (!user) {
       return res.status(401).json({
@@ -136,18 +137,9 @@ app.post('/api/v1/auth/login', async (req, res) => {
       });
     }
 
-    if (!user.senha || !email || !senha) {
-      logger.error(`Usuário encontrado, mas senha não está definida no banco para ${email}`);
-      return res.status(500).json({
-        success: false,
-        code: 'MISSING_PASSWORD',
-        message: 'Senha não encontrada no banco. Contate o suporte.',
-      });
-    }
+    const senhaCorreta = await user.compararSenha(senha);
 
-    const isPasswordValid = await bcrypt.compare(senha, user.senha);
-
-    if (!isPasswordValid) {
+    if (!senhaCorreta) {
       return res.status(401).json({
         success: false,
         code: 'INVALID_CREDENTIALS',
@@ -176,7 +168,6 @@ app.post('/api/v1/auth/login', async (req, res) => {
     });
   }
 });
-
 
 // ===========================================
 // HANDLERS DE ERRO
