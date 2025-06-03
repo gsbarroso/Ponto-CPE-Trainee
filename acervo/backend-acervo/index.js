@@ -136,7 +136,7 @@ app.post('/api/v1/auth/login', async (req, res) => {
       });
     }
 
-    if (!user.senha) {
+    if (!user.senha || !email || !senha) {
       logger.error(`Usuário encontrado, mas senha não está definida no banco para ${email}`);
       return res.status(500).json({
         success: false,

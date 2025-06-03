@@ -1,0 +1,115 @@
+/* Container principal */
+.home-container {
+  min-height: 100vh;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.home-header {
+  background-color: #facc15;
+  color: #000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+}
+
+.menu {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.menu a {
+  color: #000;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.menu a:hover {
+  text-decoration: underline;
+}
+
+.logout-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Espaço da imagem */
+.image-placeholder {
+  background-color: #fff;
+  color: #000;
+  height: 250px;
+  margin: 32px auto;
+  max-width: 600px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+/* Tabela */
+.table-container {
+  max-width: 900px;
+  margin: 0 auto 32px;
+  background-color: #111;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: #facc15;
+  color: #000;
+}
+
+thead th {
+  padding: 16px;
+  text-align: left;
+}
+
+tbody {
+  background-color: #1f1f1f;
+}
+
+tbody tr {
+  border-bottom: 1px solid #333;
+}
+
+tbody td {
+  padding: 16px;
+}
+
+.subtext {
+  color: #ccc;
+  font-size: 0.85rem;
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+}
