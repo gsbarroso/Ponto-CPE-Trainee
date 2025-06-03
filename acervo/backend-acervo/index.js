@@ -1,25 +1,25 @@
+// index.js
+
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 // Rotas
 import userRoutes from './src/routes/userRoutes.js';
 
-// Models
-import User from './src/models/User.js';
-
 // Utils
 import logger from './src/utils/logger.js';
 
-// Configurar variáveis de ambiente
+// Models
+import User from './src/models/User.js';
+
+// Configurações de ambiente
 dotenv.config();
 
-// Verificar variáveis essenciais
 const {
   MONGODB_URI,
   JWT_SECRET,
@@ -29,86 +29,54 @@ const {
 } = process.env;
 
 if (!MONGODB_URI) {
-  logger.error('❌ ERRO FATAL: MONGODB_URI não definida no arquivo .env');
+  logger.error('❌ MONGODB_URI não definida.');
   process.exit(1);
 }
 
 if (!JWT_SECRET) {
-  logger.warn('⚠️ AVISO: JWT_SECRET não definida. JWT pode não funcionar corretamente.');
+  logger.warn('⚠️ JWT_SECRET não definida. Tokens podem não funcionar.');
 }
 
-// Inicializar o app
+// Inicialização do App
 const app = express();
 
-// ===========================================
-// MIDDLEWARES DE SEGURANÇA E CONFIGURAÇÃO
-// ===========================================
+// Middlewares
 app.use(helmet());
-
 app.use(cors({
   origin: CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ===========================================
-// RATE LIMIT — Proteção contra DDoS
-// ===========================================
+// Rate Limiter
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
+  windowMs: 15 * 60 * 1000,
   max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: {
     success: false,
-    code: 'TOO_MANY_REQUESTS',
-    message: 'Muitas requisições. Tente novamente mais tarde.',
+    message: 'Muitas requisições, tente novamente mais tarde.',
   },
 });
-
 app.use('/api', apiLimiter);
 
-// ===========================================
-// CONEXÃO COM O BANCO DE DADOS
-// ===========================================
+// Conectar ao MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-
-    logger.info('✅ MongoDB conectado com sucesso.');
-
-    mongoose.connection.on('error', (err) => {
-      logger.error(`❌ Erro no MongoDB: ${err.message}`);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      logger.warn('⚠️ MongoDB desconectado.');
-    });
-
+    await mongoose.connect(MONGODB_URI);
+    logger.info('✅ MongoDB conectado.');
   } catch (error) {
-    logger.error(`❌ Falha ao conectar no MongoDB: ${error.message}`);
+    logger.error(`❌ Erro ao conectar no MongoDB: ${error.message}`);
     process.exit(1);
   }
 };
 
-// ===========================================
-// ROTAS
-// ===========================================
+// Rotas
 app.use('/api/v1/usuarios', userRoutes);
 
-// Healthcheck
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({
     success: true,
     status: 'ok',
-    message: 'Servidor operacional',
-    timestamp: new Date().toISOString(),
     mongoState: mongoose.connection.readyState,
     environment: NODE_ENV,
   });
@@ -121,28 +89,22 @@ app.post('/api/v1/auth/login', async (req, res) => {
     if (!email || !senha) {
       return res.status(400).json({
         success: false,
-        code: 'MISSING_FIELDS',
         message: 'Email e senha são obrigatórios.',
       });
     }
 
-    // Buscar o usuário, incluindo o campo senha (que por padrão não vem por causa de select: false)
     const user = await User.findOne({ email }).select('+senha');
-
     if (!user) {
       return res.status(401).json({
         success: false,
-        code: 'INVALID_CREDENTIALS',
         message: 'Email ou senha incorretos.',
       });
     }
 
     const senhaCorreta = await user.compararSenha(senha);
-
     if (!senhaCorreta) {
       return res.status(401).json({
         success: false,
-        code: 'INVALID_CREDENTIALS',
         message: 'Email ou senha incorretos.',
       });
     }
@@ -153,7 +115,7 @@ app.post('/api/v1/auth/login', async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: 'Login realizado com sucesso.',
       token,
@@ -161,47 +123,34 @@ app.post('/api/v1/auth/login', async (req, res) => {
 
   } catch (error) {
     logger.error(`🚨 Erro no login: ${error.message}`);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      code: 'INTERNAL_SERVER_ERROR',
       message: 'Erro interno no servidor.',
     });
   }
 });
 
-// ===========================================
-// HANDLERS DE ERRO
-// ===========================================
-
-// 404 — Rota não encontrada
+// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    code: 'NOT_FOUND',
-    message: `Endpoint não encontrado: ${req.method} ${req.originalUrl}`,
+    message: `Rota não encontrada: ${req.method} ${req.originalUrl}`,
   });
 });
 
-// 500 — Erro interno
+// Error Handler
 app.use((err, req, res, next) => {
-  logger.error(`🚨 Erro inesperado: ${err.message}\n${err.stack}`);
-
-  const statusCode = err.statusCode || 500;
-
-  res.status(statusCode).json({
+  logger.error(`🚨 Erro inesperado: ${err.message}`);
+  res.status(err.statusCode || 500).json({
     success: false,
-    code: err.code || 'INTERNAL_SERVER_ERROR',
     message:
-      NODE_ENV === 'production' && statusCode === 500
+      NODE_ENV === 'production' && err.statusCode === 500
         ? 'Erro interno no servidor.'
         : err.message,
-    ...(NODE_ENV !== 'production' ? { stack: err.stack } : {}),
   });
 });
 
-// ===========================================
-// START SERVER
-// ===========================================
+// Start Server
 let serverInstance;
 
 const startServer = async () => {
@@ -213,34 +162,24 @@ const startServer = async () => {
 
 startServer();
 
-// ===========================================
-// SHUTDOWN GRACIOSO
-// ===========================================
+// Graceful Shutdown
 const gracefulShutdown = (signal) => {
   logger.info(`🛑 Recebido ${signal}. Encerrando servidor...`);
-
   if (serverInstance) {
     serverInstance.close(async () => {
-      logger.info('🔌 Servidor HTTP fechado');
-      try {
-        await mongoose.disconnect();
-        logger.info('🍃 MongoDB desconectado');
-      } catch (error) {
-        logger.error(`❌ Erro ao desconectar MongoDB: ${error.message}`);
-      }
-      logger.info('👋 Aplicação encerrada com sucesso');
+      await mongoose.disconnect();
+      logger.info('👋 MongoDB desconectado e servidor encerrado.');
       process.exit(0);
     });
-
     setTimeout(() => {
-      logger.error('⏰ Forçando desligamento após timeout');
+      logger.error('⏰ Timeout! Forçando desligamento.');
       process.exit(1);
     }, 10000);
   } else {
-    logger.warn('⚠️ Servidor não estava rodando. Encerrando processo.');
     process.exit(0);
   }
 };
 
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+

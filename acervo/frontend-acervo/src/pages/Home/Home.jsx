@@ -1,5 +1,12 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Pagination, Autoplay } from 'swiper/modules'
+
+// Importação de estilos do Swiper
+import 'swiper/css'
+import 'swiper/css/pagination'
+
 import './Home.css'
 
 export default function Home() {
@@ -11,9 +18,8 @@ export default function Home() {
 
   return (
     <div className="home-container">
+      {/* Header */}
       <header className="home-header">
-        <div className="logo">
-        </div>
         <nav className="menu">
           <a href="#">Home</a>
           <a href="#">Perfil</a>
@@ -24,9 +30,32 @@ export default function Home() {
         </nav>
       </header>
 
-      {/* Espaço reservado para imagem */}
-      <div className="image-placeholder">
-        <p>Espaço reservado para imagem</p>
+      {/* Carrossel */}
+      <div className="carousel-container">
+        <Swiper
+          modules={[Pagination, Autoplay]}
+          pagination={{ clickable: true }}
+          autoplay={{ delay: 3000 }}
+          loop={true}
+          spaceBetween={30}
+          slidesPerView={1}
+        >
+          <SwiperSlide>
+            <div className="carousel-slide">
+              <p>Imagem 1 (Placeholder)</p>
+            </div>
+          </SwiperSlide>
+          <SwiperSlide>
+            <div className="carousel-slide">
+              <p>Imagem 2 (Placeholder)</p>
+            </div>
+          </SwiperSlide>
+          <SwiperSlide>
+            <div className="carousel-slide">
+              <p>Imagem 3 (Placeholder)</p>
+            </div>
+          </SwiperSlide>
+        </Swiper>
       </div>
 
       {/* Tabela */}
