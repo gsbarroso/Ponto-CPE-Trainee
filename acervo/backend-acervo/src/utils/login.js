@@ -70,4 +70,41 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/logout', (req, res) => {
+  const authHeader = req.headers['authorization'];
+  
+  if (!authHeader) {
+    return res.status(401).json({ 
+      success: false,
+      message: 'Token não fornecido.' 
+    });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ 
+      success: false,
+      message: 'Formato de token inválido.' 
+    });
+  }
+
+  try {
+    // Adicionar token à blacklist
+    revokeToken(token);
+    
+    return res.status(200).json({ 
+      success: true,
+      message: 'Logout realizado com sucesso!' 
+    });
+  } catch (error) {
+    console.error('🚨 Erro no logout:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Erro interno no servidor.' 
+    });
+  }
+});
+
+export default router;
 module.exports = router;

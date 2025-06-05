@@ -1,0 +1,123 @@
+/* Estilo padrão (desktop e tablets) */
+.usuarios-container {
+  min-height: 100vh;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+}
+
+table {
+  width: 90%;
+  max-width: 900px;
+  border-collapse: collapse;
+  margin: 24px 0;
+}
+
+thead {
+  background-color: #fce515;
+  color: black;
+}
+
+thead th {
+  padding: 16px;
+}
+
+tbody tr {
+  background-color: #1f1f1f;
+  border-bottom: 1px solid #333;
+}
+
+tbody td {
+  padding: 16px;
+}
+
+.voltar-btn {
+  background-color: #fce515;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.voltar-btn:hover {
+  background-color: #e6d400;
+}
+
+/* RESPONSIVIDADE ATÉ 600px (celulares) */
+@media (max-width: 600px) {
+  .usuarios-container {
+    padding: 16px;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+    width: 100%;
+  }
+
+  /* Esconde o cabeçalho da tabela */
+  thead {
+    display: none;
+  }
+
+  /* Cada linha vira um card */
+  tbody tr {
+    margin-bottom: 16px;
+    background-color: #1f1f1f;
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid #333;
+  }
+
+  /* Cada célula vira uma linha no card */
+  tbody td {
+    position: relative;
+    padding-left: 45%;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    text-align: left;
+    border: none;
+    border-bottom: 1px solid #444;
+    word-wrap: break-word;
+  }
+
+  /* Label do cabeçalho na frente do conteúdo */
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 12px;
+    top: 8px;
+    width: 40%;
+    padding-right: 10px;
+    font-weight: 600;
+    color: #fce515;
+    white-space: nowrap;
+  }
+
+  /* Última célula sem borda inferior */
+  tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Botão ocupa a largura toda */
+  .voltar-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+  }
+}
+
+/* Ajuste fino para telas mínimas de 280px */
+@media (max-width: 320px) {
+  tbody td {
+    padding-left: 40%;
+  }
+
+  tbody td::before {
+    width: 35%;
+  }
+}

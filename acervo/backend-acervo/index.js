@@ -130,6 +130,55 @@ app.post('/api/v1/auth/login', async (req, res) => {
   }
 });
 
+// Rota de Logout Corrigida
+app.post('/api/v1/auth/logout', (req, res) => {
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  
+  if (!authHeader) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token não fornecido.',
+    });
+  }
+
+  const token = authHeader.split(' ')[1]; // Remove o "Bearer "
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Formato de token inválido.',
+    });
+  }
+
+  try {
+    // Verificação tolerante a tokens expirados
+    jwt.verify(token, JWT_SECRET, { ignoreExpiration: true }, (err) => {
+      // Só rejeitamos se for erro de assinatura, não de expiração
+      if (err && err.name !== 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Token inválido.',
+        });
+      }
+const tokenBlacklist = new Set();
+
+      // Adicionar token à blacklist
+      tokenBlacklist.add(token);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Logout realizado com sucesso.',
+      });
+    });
+  } catch (error) {
+    console.error('🚨 Erro no logout:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno no servidor.',
+    });
+  }
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
