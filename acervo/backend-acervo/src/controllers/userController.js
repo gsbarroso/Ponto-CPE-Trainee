@@ -3,12 +3,13 @@ import User from "../models/User.js";
 // Criar usuário (POST)
 export const createUser = async (req, res) => {
   try {
-    const { nome, email, senha, nivel_acesso } = req.body;
+    const { nome, email, senha, nivel_acesso, cargo } = req.body;
 
     const user = new User({
       nome,
       email,
       senha,
+      cargo,
       nivel_acesso: Boolean(nivel_acesso),
     });
 
@@ -18,6 +19,7 @@ export const createUser = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
+      cargo: user.cargo,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });
@@ -35,6 +37,7 @@ export const getAllUsers = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
+      cargo: user.cargo,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     }));
@@ -57,6 +60,7 @@ export const getUserById = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
+      cargo: user.cargo,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });
@@ -87,6 +91,7 @@ export const updateUser = async (req, res) => {
       id: user._id,
       nome: user.nome,
       email: user.email,
+      cargo: user.cargo,
       nivel_acesso: user.nivel_acesso,
       createdAt: user.createdAt,
     });

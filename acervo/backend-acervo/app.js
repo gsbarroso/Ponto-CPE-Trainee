@@ -7,11 +7,11 @@ import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
 import './database/database.js'; // conexão MongoDB
+import cors from 'cors';
 
 const app = express();
 
 // Middlewares globais
-app.use(cors());
 app.use(helmet());
 app.use(express.json());
 

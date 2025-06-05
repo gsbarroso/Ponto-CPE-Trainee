@@ -1,13 +1,33 @@
-<form id="formCadastro">
-  <input type="text" id="nome" placeholder="Nome" required />
-  <input type="email" id="email" placeholder="Email" required />
-  <input type="password" id="senha" placeholder="Senha" required />
-  <select id="cargo">
-    <option value="Desenvolvedor">Desenvolvedor</option>
-    <option value="Gerente">Gerente</option>
-    <option value="Admin">Admin</option>
-  </select>
-  <button type="submit">Cadastrar</button>
-</form>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Usuários</title>
+    <!-- Link para CSS (se houver) -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-<p id="mensagem"></p>
+    <h1>Formulário de Cadastro</h1>
+
+    <form id="formCadastro">
+        <input type="text" id="nome" placeholder="Nome" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="senha" placeholder="Senha" required />
+        <select id="cargo" required>
+            <option value="" disabled selected>Selecione o cargo</option>
+            <option value="Desenvolvedor">Desenvolvedor</option>
+            <option value="Gerente">Gerente</option>
+            <option value="Admin">Admin</option>
+        </select>
+        <button type="submit">Cadastrar</button>
+    </form>
+
+    <p id="mensagem"></p>
+
+    <!-- Link para JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

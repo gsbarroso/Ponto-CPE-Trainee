@@ -17,6 +17,7 @@ import logger from './src/utils/logger.js';
 // Models
 import User from './src/models/User.js';
 
+
 // Configurações de ambiente
 dotenv.config();
 

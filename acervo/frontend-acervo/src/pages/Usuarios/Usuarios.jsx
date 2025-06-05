@@ -1,14 +1,24 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 import './Usuarios.css';
 
 function Usuarios() {
-  // Simula lista de usuários
-  const usuarios = [
-    { nome: 'Gustavo Silvestre', email: 'gustavo@email.com', matricula: '2024019948', cargo: 'Trainee' },
-    { nome: 'Maria Rita', email: 'maria@email.com', matricula: '20231235', cargo: 'Analista' },
-    { nome: 'Carlos Souza', email: 'carlos@email.com', matricula: '20231236', cargo: 'Coordenador' },
-    { nome: 'Ana Lima', email: 'ana@email.com', matricula: '20231237', cargo: 'Gerente' }
-  ];
+  const [usuarios, setUsuarios] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function carregarUsuarios() {
+      try {
+        const response = await api.get('/usuarios');
+        setUsuarios(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+      }
+    }
+
+    carregarUsuarios();
+  }, []);
 
   return (
     <div className="usuarios-container">
@@ -17,25 +27,36 @@ function Usuarios() {
         <thead>
           <tr>
             <th>Nome</th>
-            <th>Email</th>
-            <th>Matrícula</th>
             <th>Cargo</th>
+            <th>Email</th>
+            <th>ID</th>
           </tr>
         </thead>
         <tbody>
-          {usuarios.map((user, index) => (
-            <tr key={index}>
-              <td>{user.nome}</td>
-              <td>{user.email}</td>
-              <td>{user.matricula}</td>
-              <td>{user.cargo}</td>
+          {usuarios.length > 0 ? (
+            usuarios.map((usuario) => (
+              <tr key={usuario.id}>
+                <td>{usuario.nome}</td>
+                <td>{usuario.cargo}</td>
+                <td>{usuario.email}</td>
+                <td>{usuario.id}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4">Nenhum usuário encontrado.</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
-      <Link to="/home">
-        <button className="voltar-btn">Voltar para Home</button>
-      </Link>
+
+      <button
+        type="button"
+        onClick={() => navigate('/home')}
+        className="voltar-btn"
+      >
+        Voltar para Home
+      </button>
     </div>
   );
 }
